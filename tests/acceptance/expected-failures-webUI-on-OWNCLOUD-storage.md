@@ -21,9 +21,6 @@ Other free text and markdown formatting can be used elsewhere in the document if
 -   [webUIPreview/imageMediaViewer.feature:136](https://github.com/owncloud/web/blob/master/tests/acceptance/features/webUIPreview/imageMediaViewer.feature#L136)
 -   [webUIPreview/imageMediaViewer.feature:154](https://github.com/owncloud/web/blob/master/tests/acceptance/features/webUIPreview/imageMediaViewer.feature#L154)
 
-### [Media viewer previews are not visible in public share](https://github.com/owncloud/ocis/issues/1370)
--   [webUIPreview/imageMediaViewer.feature:110](https://github.com/owncloud/web/blob/master/tests/acceptance/features/webUIPreview/imageMediaViewer.feature#L110)
-
 ### [authentication dialog appears when user is deleted](https://github.com/owncloud/web/issues/4564)
 ### [login error page loops when logged in user is deleted](https://github.com/owncloud/ocis/issues/1129)
 -   [webUILogin/openidLogin.feature:62](https://github.com/owncloud/web/blob/master/tests/acceptance/features/webUILogin/openidLogin.feature#L62)
@@ -193,9 +190,6 @@ Other free text and markdown formatting can be used elsewhere in the document if
 
 ### [Can login with invalid password while logging in with openidconnect in oc10](https://github.com/owncloud/ocis/issues/1428)
 -   [webUILogin/openidLogin.feature:52](https://github.com/owncloud/web/blob/master/tests/acceptance/features/webUILogin/openidLogin.feature#L52)
-
-### Image-Media-Viewer-Issue
--   [webUIPreview/imageMediaViewer.feature:33](https://github.com/owncloud/web/blob/master/tests/acceptance/features/webUIPreview/imageMediaViewer.feature#L33)
 
 ### webUI-Private-Links
 -   [webUIPrivateLinks/accessingPrivateLinks.feature:8](https://github.com/owncloud/web/blob/master/tests/acceptance/features/webUIPrivateLinks/accessingPrivateLinks.feature#L8)
