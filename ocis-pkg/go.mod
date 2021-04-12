@@ -24,20 +24,20 @@ require (
 	github.com/justinas/alice v1.2.0
 	github.com/micro/cli/v2 v2.1.2
 	github.com/oklog/run v1.1.0
-	github.com/owncloud/ocis/accounts v0.5.3-0.20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/glauth v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/graph v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/graph-explorer v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/idp v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/ocs v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/onlyoffice v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/proxy v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/settings v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/storage v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/store v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/thumbnails v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/web v0.0.0-20210216094451-dc73176dc62d
-	github.com/owncloud/ocis/webdav v0.0.0-20210216094451-dc73176dc62d
+	github.com/owncloud/ocis/accounts v0.5.3-0.20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/glauth v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/graph v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/graph-explorer v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/idp v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/ocs v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/onlyoffice v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/proxy v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/settings v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/storage v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/store v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/thumbnails v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/web v0.0.0-20210412105747-9b95e9b1191b
+	github.com/owncloud/ocis/webdav v0.0.0-20210412105747-9b95e9b1191b
 	github.com/prometheus/client_golang v1.9.0
 	github.com/rs/zerolog v1.21.0
 	github.com/stretchr/testify v1.7.0
@@ -48,20 +48,6 @@ require (
 )
 
 replace (
-	github.com/owncloud/ocis/accounts => ../accounts
-	github.com/owncloud/ocis/glauth => ../glauth
-	github.com/owncloud/ocis/graph => ../graph
-	github.com/owncloud/ocis/graph-explorer => ../graph-explorer
-	github.com/owncloud/ocis/idp => ../idp
-	github.com/owncloud/ocis/ocs => ../ocs
-	github.com/owncloud/ocis/onlyoffice => ../onlyoffice
-	github.com/owncloud/ocis/proxy => ../proxy
-	github.com/owncloud/ocis/settings => ../settings
-	github.com/owncloud/ocis/storage => ../storage
-	github.com/owncloud/ocis/store => ../store
-	github.com/owncloud/ocis/thumbnails => ../thumbnails
-	github.com/owncloud/ocis/web => ../web
-	github.com/owncloud/ocis/webdav => ../webdav
 	// taken from https://github.com/asim/go-micro/blob/master/plugins/registry/etcd/go.mod#L14-L16
 	go.etcd.io/etcd/api/v3 => go.etcd.io/etcd/api/v3 v3.0.0-20210204162551-dae29bb719dd
 	go.etcd.io/etcd/pkg/v3 => go.etcd.io/etcd/pkg/v3 v3.0.0-20210204162551-dae29bb719dd
