@@ -112,6 +112,7 @@ func (s *FileSystem) storeImage(key string, img []byte) (string, error) {
 // <filestorage-root>/users/<3 characters>/<3 characters>/<48 characters>/
 // This will balance the folders in setups with many users.
 func (s *FileSystem) userDir(username string) string {
+
 	hash := sha256.New224()
 	if _, err := hash.Write([]byte(username)); err != nil {
 		s.logger.Fatal().Err(err).Msg("failed to create hash")
@@ -131,7 +132,7 @@ func (s *FileSystem) createUserDir(username string) (string, error) {
 }
 
 // linkImageToUserDir links the stored images to the user directory.
-// The goal is to minimize disk usage by linking to the images if they already exist and avoid file duplicaiton.
+// The goal is to minimize disk usage by linking to the images if they already exist and avoid file duplication.
 func (s *FileSystem) linkImageToUserDir(key string, userDir string) error {
 	imgRootDir := s.rootDir(key)
 

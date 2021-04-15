@@ -1,10 +1,13 @@
 package config
 
+import "context"
+
 // Log defines the available logging configuration.
 type Log struct {
 	Level  string
 	Pretty bool
 	Color  bool
+	File   string
 }
 
 // Debug defines the available debug configuration.
@@ -40,6 +43,9 @@ type Config struct {
 	Server    Server
 	Tracing   Tracing
 	Thumbnail Thumbnail
+
+	Context    context.Context
+	Supervised bool
 }
 
 // FileSystemStorage defines the available filesystem storage configuration.

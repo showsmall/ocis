@@ -7,23 +7,104 @@ geekdocEditPath: edit/master/docs/ocis
 geekdocFilePath: release_notes.md
 ---
 
+## ownCloud Infinite Scale 1.4.0 Technology Preview
+
+Version 1.4.0 brings new features, bug fixes and further improvements. The accessibility of ownCloud Web has greatly improved, paving the way for WCAG 2.1 compliance. The Infinite Scale platform has received major improvements regarding memory consumption. The user storage quota feature has been implemented and folder sizes are now properly calculated. It is now possible to write log messages to log files and to specify configuration values using a config file.
+
+The most prominent changes in version 1.4.0 comprise:
+
+- ownCloud Web is now able to use pre-signed url downloads for password protected shares [#38376](https://github.com/owncloud/core/pull/38376)
+- Reduced the memory consumption of the runtime drastically (by a factor of 24) [#1762](https://github.com/owncloud/ocis/pull/1762)
+- Initial quota support to impose storage space restrictions for users (query / set) [#1405](https://github.com/cs3org/reva/pull/1405)
+- Folder sizes are now calculated correctly (tree size accounting) [#1405](https://github.com/cs3org/reva/pull/1405)
+- Added the possibility to write the log to a file with the option to write separated log files by service [#1816](https://github.com/owncloud/ocis/pull/1816)
+- Added the possibility to specify configuration values for the entire platform in a single config file [#1762](https://github.com/owncloud/ocis/pull/1762)
+- Added GIF and JPEG file types for thumbnail generation (allows to display thumbnails and use the media viewer for GIF/JPEG images) [#1791](https://github.com/owncloud/ocis/pull/1791)
+- Fixes for the trash bin feature [#1552](https://github.com/cs3org/reva/pull/1552)
+
+You can also read the full [ownCloud Infinite Scale changelog](https://github.com/owncloud/ocis/blob/master/CHANGELOG.md) and [ownCloud Web changelog](https://github.com/owncloud/web/blob/master/CHANGELOG.md#changelog-for-owncloud-web-200-2021-02-16) for further details on what has changed.
+
+### Breaking changes
+{{< hint warning >}}
+We are currently in a Tech Preview state and breaking changes may occur at any time. For more information see our [release roadmap]({{< ref "./release_roadmap" >}})
+{{< /hint >}}
+
+#### Changed oCIS storage driver file layout
+
+Related: [#1452](https://github.com/cs3org/reva/pull/1452)
+
+Despite a breaking change in the oCIS storage driver file layout, data is not automatically migrated. You will be affected if you plan to update from a previous version of oCIS to oCIS 1.4.0 and are using the oCIS storage driver, which is currently the default storage driver.
+
+Implications:
+- manual action required
+
+Our recommended update strategy to oCIS 1.4.0 is:
+1. let users backup all their data stored in oCIS
+1. stop oCIS
+1. prune all oCIS data in `/var/tmp/ocis`
+1. update to oCIS 1.4.0
+1. recreate user accounts (can be skipped if an external IDP is used)
+1. let users upload all their data again
+1. let users recreate their shares
+
+If you already updated to oCIS 1.4.0 without our recommended update strategy you will see no data in oCIS anymore, even after a downgrade to your previous version of oCIS. But be assured that your data is still there.
+
+You have to follow these steps to be able to access your data again in oCIS:
+1. stop oCIS
+1. navigate to `/var/tmp/ocis/storage/users/nodes/root/`
+1. in this directory you will find directories with UUID as names. These are the home folders of the oCIS users. Find the ones with content your oCIS users uploaded to oCIS.
+1. create an temporary directory eg. `/tmp/dereferenced-ocis-storage`
+1. copy the data from oCIS to the temporary directory while dereferencing symlinks. On Linux you can do this by running `cp --recursive --dereference /var/tmp/ocis/storage/users/nodes/root/ /tmp/dereferenced-ocis-storage`
+1. you now have a backup of all users data in `/tmp/dereferenced-ocis-storage` and can follow our recommended update strategy above
+
+
+## ownCloud Infinite Scale 1.3.0 Technology Preview
+Version 1.3.0 is a regular maintenance and bugfix release. It provides the latest improvements to users and administrators.
+
+### Changes in Reva
+
+[Reva](https://github.com/cs3org/Reva) is one of the fundamental components of oCIS. It has these significant changes:
+
+- Align href URL encoding with oc10 [#1425](https://github.com/cs3org/Reva/pull/1425)
+- Fix public link webdav permissions [#1461](https://github.com/cs3org/Reva/pull/1461)
+- Purge non-empty dirs from trash-bin [#1429](https://github.com/cs3org/Reva/pull/1429)
+- Checksum support [#1400](https://github.com/cs3org/Reva/pull/1400)
+- Set quota when creating home directory in EOS [#1477](https://github.com/cs3org/Reva/pull/1477)
+- Add functionality to share resources with groups [#1453](https://github.com/cs3org/Reva/pull/1453)
+- Add s3ng storage driver, storing blobs in a s3-compatible blobstore [#1428](https://github.com/cs3org/Reva/pull/1428)
+
+### Changes in oCIS
+
+These are the major changes in oCIS:
+
+- Update ownCloud Web to v2.0.2: [#1776](https://github.com/owncloud/ocis/pull/1776)
+- Enhancement - Update go-micro to v3.5.1-0.20210217182006-0f0ace1a44a9: [#1670](https://github.com/owncloud/ocis/pull/1670)
+- Enhancement - Update reva to v1.6.1-0.20210223065028-53f39499762e: [#1683](https://github.com/owncloud/ocis/pull/1683)
+- Enhancement - Add initial nats and kubernetes registry support: [#1697](https://github.com/owncloud/ocis/pull/1697)
+
+More details about this release can be found in the full [ownCloud Infinite Scale changelog](https://github.com/owncloud/ocis/blob/master/CHANGELOG.md) and [ownCloud Web changelog](https://github.com/owncloud/web/blob/master/CHANGELOG.md#changelog-for-owncloud-web-202-2021-03-08).
+
+### Breaking changes
+{{< hint warning >}}
+We are currently in a Tech Preview state and breaking changes may occur at any time. For more information see our [release roadmap]({{< ref "./release_roadmap" >}})
+{{< /hint >}}
 
 ## ownCloud Infinite Scale 1.2.0 Technology Preview
 Version 1.2.0 brings more functionality and stability to ownCloud Infinite Scale. ownCloud Web now loads a lot faster and is prepared for the introduction of accessibility features. An initial implementation for S3 storage support is available and file integrity checking has been introduced.
 
 The most prominent changes in version 1.2.0 comprise:
 
-- The initial loading time for ownCloud Web has been reduced by handling dependencies more efficiently (the bundle size of ownCloud Web has been drastically reduced) https://github.com/owncloud/web/pull/4584
-- Preparations for accessibility features have been implemented to work towards WCAG 2.1 compliance https://github.com/owncloud/web/pull/4594
-- Initial S3 storage support is available https://github.com/cs3org/reva/issues/1429
-- File integrity checking has been introduced: When uploading files, Infinite Scale now makes sure that the file integrity is protected between server and clients by comparing checksums https://github.com/cs3org/reva/issues/1400
-- Public link passwords are now stored as hashes to improve security https://github.com/cs3org/reva/issues/1462
+- The initial loading time for ownCloud Web has been reduced by handling dependencies more efficiently (the bundle size of ownCloud Web has been drastically reduced) [#4584](https://github.com/owncloud/web/pull/4584)
+- Preparations for accessibility features have been implemented to work towards WCAG 2.1 compliance [#4594](https://github.com/owncloud/web/pull/4594)
+- Initial S3 storage support is available [#1429](https://github.com/cs3org/reva/issues/1429)
+- File integrity checking has been introduced: When uploading files, Infinite Scale now makes sure that the file integrity is protected between server and clients by comparing checksums [#1400](https://github.com/cs3org/reva/issues/1400)
+- Public link passwords are now stored as hashes to improve security [#1462](https://github.com/cs3org/reva/issues/1462)
 
 You can also read the full [ownCloud Infinite Scale changelog](https://github.com/owncloud/ocis/blob/master/CHANGELOG.md) and [ownCloud Web changelog](https://github.com/owncloud/web/blob/master/CHANGELOG.md#changelog-for-owncloud-web-200-2021-02-16) for further details on what has changed.
 
 ### Breaking changes
 {{< hint warning >}}
-We are currently in a Tech Preview state and breaking changes may occur at any time. For more information see our [release roadmap]({{< ref "./release_roadmap.md" >}})
+We are currently in a Tech Preview state and breaking changes may occur at any time. For more information see our [release roadmap]({{< ref "./release_roadmap" >}})
 {{< /hint >}}
 
 #### Fix IDP service user
@@ -127,7 +208,7 @@ ownCloud Infinite Scale is built as a modular framework in which components can 
 - a built-in IdP
 - an application gateway/proxy
 
-These components can be deployed in a multi-tier deployment architecture. See the [documentation](https://owncloud.github.io/ocis/) for an overview of the services.
+These components can be deployed in a multi-tier deployment architecture. See the [documentation]({{< ref "./" >}}) for an overview of the services.
 
 ### Operation modes
 
@@ -149,7 +230,7 @@ For the product transition phase, ownCloud Infinite Scale comes with an operatio
 - The [Graph API](https://marketplace.owncloud.com/apps/graphapi) app is installed on ownCloud Server
 - The latest client versions are rolled-out to users (required for OpenID Connect support). See the [documentation](https://doc.owncloud.com/server/admin_manual/configuration/user/oidc/#owncloud-desktop-and-mobile-clients) for more information.
 
-See the [documentation](https://owncloud.github.io/ocis/deployment/owncloud10_with_oc_web/) on how to deploy Infinite Scale in bridge mode.
+See the [documentation]({{< ref "./deployment/owncloud10_with_oc_web" >}}) on how to deploy Infinite Scale in bridge mode.
 
 {{< hint "warning" >}}
 **Technology Preview**
@@ -195,13 +276,13 @@ The single binary is the best option to test the new ownCloud Infinite Scale 1.0
 
 4. Navigate to <https://localhost:9200> and log in to ownCloud Web (admin:admin)
 
-Production environments will need a more sophisticated setup, see <https://owncloud.github.io/ocis/deployment/> for more information.
+Production environments will need a more sophisticated setup, see <{{< ref "./deployment" >}}> for more information.
 
 {{< /tab >}}
 {{< tab "Docker" >}}
 #### Containerized Setup
 
-For more sophisticated setups we recommend using one of our docker setup examples. See the [documentation](https://owncloud.github.io/ocis/deployment/ocis_traefik/) for a setup with [Traefik](https://traefik.io/traefik/) as a reverse proxy which also includes automated SSL certificate provisioning using Letsencrypt tools.
+For more sophisticated setups we recommend using one of our docker setup examples. See the [documentation](<{{< ref "./deployment/ocis_traefik" >}}>) for a setup with [Traefik](https://traefik.io/traefik/) as a reverse proxy which also includes automated SSL certificate provisioning using Letsencrypt tools.
 
 {{< /tab >}}
 {{< /tabs >}}

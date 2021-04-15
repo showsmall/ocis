@@ -8,7 +8,7 @@ title: ownCloud
 
 Welcome to our developer documentation. Here you can find developer documentation on:
 
-- [oCIS](https://owncloud.github.io/ocis/) server
+- [oCIS]({{< ref "./ocis" >}}) server
 - oCIS extensions
 - Clients like:
     - [ownCloud Web](https://github.com/owncloud/web) - the new web frontend for oCIS and ownCloud
@@ -22,7 +22,7 @@ Welcome to our developer documentation. Here you can find developer documentatio
 The oCIS server is Apache v2 licensed.
 The lower storage layer of oCIS is defined by the CS3 APIs and implemented in the REVA project. Our goal is to develop the CS3 APIs to an open standard and collaborate on the open source REVA reference implementation for CS3 APIs.
 
-You can also find all client sources on GitHub.
+You can also find all client sources on [GitHub](https://github.com/owncloud/).
 
 ## Join us
 

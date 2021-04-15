@@ -1,10 +1,13 @@
 package config
 
+import "context"
+
 // Log defines the available logging configuration.
 type Log struct {
 	Level  string
 	Pretty bool
 	Color  bool
+	File   string
 }
 
 // Debug defines the available debug configuration.
@@ -33,20 +36,24 @@ type StorageRegistry struct {
 	// HomeProvider is the path in the global namespace that the static storage registry uses to determine the home storage
 	HomeProvider string
 	Rules        []string
+	JSON         string
 }
 
 // Sharing defines the available sharing configuration.
 type Sharing struct {
 	Port
-	UserDriver      string
-	UserJSONFile    string
-	UserSQLUsername string
-	UserSQLPassword string
-	UserSQLHost     string
-	UserSQLPort     int
-	UserSQLName     string
-	PublicDriver    string
-	PublicJSONFile  string
+	UserDriver                       string
+	UserJSONFile                     string
+	UserSQLUsername                  string
+	UserSQLPassword                  string
+	UserSQLHost                      string
+	UserSQLPort                      int
+	UserSQLName                      string
+	PublicDriver                     string
+	PublicJSONFile                   string
+	PublicPasswordHashCost           int
+	PublicEnableExpiredSharesCleanup bool
+	PublicJanitorRunInterval         int
 }
 
 // Port defines the available port configuration.
@@ -74,6 +81,12 @@ type Port struct {
 	// Config can be used to configure the reva instance.
 	// Services and Protocol will be ignored if this is used
 	Config map[string]interface{}
+
+	// Context allows for context cancellation and propagation
+	Context context.Context
+
+	// Supervised is used when running under an oCIS runtime supervision tree
+	Supervised bool
 }
 
 // Users defines the available users configuration.
@@ -100,6 +113,7 @@ type FrontendPort struct {
 	OCDavPrefix       string
 	OCSPrefix         string
 	OCSSharePrefix    string
+	OCSHomeNamespace  string
 	PublicURL         string
 	Middleware        Middleware
 }

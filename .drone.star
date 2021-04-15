@@ -1,5 +1,6 @@
 config = {
   'modules': [
+    # if you add a module here please also add it to the root level Makefile
     'accounts',
     'glauth',
     'graph-explorer',
@@ -107,16 +108,16 @@ config = {
 
 
 # volume for steps to cache Go dependencies between steps of a pipeline
-# GOPATH must be set to /srv/app inside the image, which is the case for webhippie/golang
-stepVolumeGoWebhippie = \
+# GOPATH must be set to /go inside the image, which is the case
+stepVolumeGo = \
   {
   'name': 'gopath',
-  'path': '/srv/app',
+  'path': '/go',
   }
 
 # volume for pipeline to cache Go dependencies between steps of a pipeline
-# to be used in combination with stepVolumeGoWebhippie
-pipelineVolumeGoWebhippie = \
+# to be used in combination with stepVolumeGo
+pipelineVolumeGo = \
   {
   'name': 'gopath',
   'temp': {},
@@ -187,7 +188,6 @@ def main(ctx):
   build_release_helpers = [
     changelog(ctx),
     docs(ctx),
-    refreshDockerBadges(ctx)
   ]
 
   if ctx.build.event == "cron":
@@ -239,10 +239,10 @@ def testOcisModules(ctx):
   for module in config['modules']:
     pipelines.append(testOcisModule(ctx, module))
 
-  coverage_upload = uploadCoverage(ctx)
-  coverage_upload['depends_on'] = getPipelineNames(pipelines)
+  scan_result_upload = uploadScanResults(ctx)
+  scan_result_upload['depends_on'] = getPipelineNames(pipelines)
 
-  return pipelines + [coverage_upload]
+  return pipelines + [scan_result_upload]
 
 def testPipelines(ctx):
   pipelines = [
@@ -263,52 +263,37 @@ def testPipelines(ctx):
 def testOcisModule(ctx, module):
   steps = makeGenerate(module) + [
     {
-      'name': 'vet',
-      'image': 'webhippie/golang:1.15',
+      'name': 'golangci-lint',
+      'image': 'owncloudci/golang:1.16',
       'pull': 'always',
       'commands': [
-        'make -C %s vet' % (module),
+        'mkdir -p cache/checkstyle',
+        'make -C %s ci-golangci-lint' % (module),
+        'mv %s/checkstyle.xml cache/checkstyle/%s_checkstyle.xml' % (module, module),
       ],
-      'volumes': [stepVolumeGoWebhippie,],
-    },
-    {
-      'name': 'staticcheck',
-      'image': 'webhippie/golang:1.15',
-      'pull': 'always',
-      'commands': [
-        'make -C %s staticcheck' % (module),
-      ],
-      'volumes': [stepVolumeGoWebhippie,],
-    },
-    {
-      'name': 'lint',
-      'image': 'webhippie/golang:1.15',
-      'pull': 'always',
-      'commands': [
-        'make -C %s lint' % (module),
-      ],
-      'volumes': [stepVolumeGoWebhippie,],
+      'volumes': [stepVolumeGo,],
     },
     {
         'name': 'test',
-        'image': 'webhippie/golang:1.15',
+        'image': 'owncloudci/golang:1.16',
         'pull': 'always',
         'commands': [
+          'mkdir -p cache/coverage',
           'make -C %s test' % (module),
-          'mv %s/coverage.out %s_coverage.out' % (module, module),
+          'mv %s/coverage.out cache/coverage/%s_coverage.out' % (module, module),
         ],
-        'volumes': [stepVolumeGoWebhippie,],
+        'volumes': [stepVolumeGo,],
       },
       {
-        'name': 'coverage-cache',
-        'image': 'plugins/s3',
+        'name': 'scan-result-cache',
+        'image': 'plugins/s3:1',
         'settings': {
           'endpoint': {
             'from_secret': 'cache_s3_endpoint'
           },
           'bucket': 'cache',
-          'source': '%s_coverage.out' % (module),
-          'target': '%s/%s/coverage' % (ctx.repo.slug, ctx.build.commit + '-${DRONE_BUILD_NUMBER}'),
+          'source': 'cache/**/*',
+          'target': '%s/%s' % (ctx.repo.slug, ctx.build.commit + '-${DRONE_BUILD_NUMBER}'),
           'path_style': True,
           'access_key': {
             'from_secret': 'cache_s3_access_key'
@@ -337,7 +322,7 @@ def testOcisModule(ctx, module):
         'refs/pull/**',
       ],
     },
-    'volumes': [pipelineVolumeGoWebhippie],
+    'volumes': [pipelineVolumeGo],
   }
 
 def buildOcisBinaryForTesting(ctx):
@@ -360,10 +345,10 @@ def buildOcisBinaryForTesting(ctx):
         'refs/pull/**',
       ],
     },
-    'volumes': [pipelineVolumeGoWebhippie],
+    'volumes': [pipelineVolumeGo],
   }
 
-def uploadCoverage(ctx):
+def uploadScanResults(ctx):
   sonar_env = {
       'SONAR_TOKEN': {
         'from_secret': 'sonar_token',
@@ -376,26 +361,39 @@ def uploadCoverage(ctx):
       'SONAR_PULL_REQUEST_KEY': '%s' % (ctx.build.ref.replace("refs/pull/", "").split("/")[0]),
     })
 
+  repo_slug = ctx.build.source_repo if ctx.build.source_repo else ctx.repo.slug
+
   return {
     'kind': 'pipeline',
     'type': 'docker',
-    'name': 'upload-coverage',
+    'name': 'upload-scan-results',
     'platform': {
       'os': 'linux',
       'arch': 'amd64',
     },
+    'clone': {
+      'disable': True, # Sonarcloud does not apply issues on already merged branch
+    },
     'steps': [
       {
+        'name': 'clone',
+        'image': 'alpine/git:latest',
+        'commands': [
+          'git clone https://github.com/%s.git .' % (repo_slug),
+          'git checkout $DRONE_COMMIT',
+        ],
+      },
+      {
         'name': 'sync-from-cache',
-        'image': 'minio/mc:RELEASE.2020-12-10T01-26-17Z',
+        'image': 'minio/mc:RELEASE.2021-03-23T05-46-11Z',
         'environment': {
-          'MC_HOST_cache': {
+          'MC_HOST_cachebucket': {
             'from_secret': 'cache_s3_connection_url'
           }
         },
         'commands': [
-          'mkdir -p coverage',
-          'mc mirror cache/cache/%s/%s/coverage coverage/' % (ctx.repo.slug, ctx.build.commit + '-${DRONE_BUILD_NUMBER}'),
+          'mkdir -p cache',
+          'mc mirror cachebucket/cache/%s/%s/cache cache/' % (ctx.repo.slug, ctx.build.commit + '-${DRONE_BUILD_NUMBER}'),
         ]
       },
       {
@@ -410,20 +408,20 @@ def uploadCoverage(ctx):
       },
       {
         'name': 'sonarcloud',
-        'image': 'sonarsource/sonar-scanner-cli',
+        'image': 'sonarsource/sonar-scanner-cli:latest',
         'pull': 'always',
         'environment': sonar_env,
       },
       {
         'name': 'purge-cache',
-        'image': 'minio/mc:RELEASE.2020-12-10T01-26-17Z',
+        'image': 'minio/mc:RELEASE.2021-03-23T05-46-11Z',
         'environment': {
-          'MC_HOST_cache': {
+          'MC_HOST_cachebucket': {
             'from_secret': 'cache_s3_connection_url'
           }
         },
         'commands': [
-          'mc rm --recursive --force cache/cache/%s/%s/coverage' % (ctx.repo.slug, ctx.build.commit + '-${DRONE_BUILD_NUMBER}'),
+          'mc rm --recursive --force cachebucket/cache/%s/%s/cache' % (ctx.repo.slug, ctx.build.commit + '-${DRONE_BUILD_NUMBER}'),
         ]
       },
     ],
@@ -558,7 +556,7 @@ def uiTestPipeline(ctx, suiteName, storage = 'owncloud', accounts_hash_difficult
       ocisServer(storage, accounts_hash_difficulty, [stepVolumeOC10Tests]) + [
       {
         'name': 'webUITests',
-        'image': 'webhippie/nodejs:latest',
+        'image': 'owncloudci/nodejs:14',
         'pull': 'always',
         'environment': {
           'SERVER_HOST': 'https://ocis-server:9200',
@@ -574,13 +572,14 @@ def uiTestPipeline(ctx, suiteName, storage = 'owncloud', accounts_hash_difficult
           'EXPECTED_FAILURES_FILE': '/drone/src/tests/acceptance/expected-failures-webUI-on-%s-storage.md' % (storage.upper()),
         },
         'commands': [
-          'source /drone/src/.drone.env',
+          '. /drone/src/.drone.env',
           'git clone -b master --depth=1 https://github.com/owncloud/testing.git /srv/app/testing',
           'git clone -b $WEB_BRANCH --single-branch --no-tags https://github.com/owncloud/web.git /srv/app/web',
           'cd /srv/app/web',
           'git checkout $WEB_COMMITID',
           'cp -r tests/acceptance/filesForUpload/* /uploads',
-          'yarn install-all',
+          'yarn install --all',
+          'yarn build',
           './tests/acceptance/run.sh'
         ],
         'volumes':
@@ -624,7 +623,7 @@ def accountsUITests(ctx, storage = 'owncloud', accounts_hash_difficulty = 4):
       ocisServer(storage, accounts_hash_difficulty, [stepVolumeOC10Tests]) + [
       {
         'name': 'WebUIAcceptanceTests',
-        'image': 'webhippie/nodejs:latest',
+        'image': 'owncloudci/nodejs:14',
         'pull': 'always',
         'environment': {
           'SERVER_HOST': 'https://ocis-server:9200',
@@ -640,13 +639,14 @@ def accountsUITests(ctx, storage = 'owncloud', accounts_hash_difficulty = 4):
           'FEATURE_PATH': '/drone/src/accounts/ui/tests/acceptance/features',
         },
         'commands': [
-          'source /drone/src/.drone.env',
+          '. /drone/src/.drone.env',
           'git clone -b master --depth=1 https://github.com/owncloud/testing.git /srv/app/testing',
           'git clone -b $WEB_BRANCH --single-branch --no-tags https://github.com/owncloud/web.git /srv/app/web',
           'cd /srv/app/web',
           'git checkout $WEB_COMMITID',
           'cp -r tests/acceptance/filesForUpload/* /uploads',
-          'yarn install-all',
+          'yarn install --all',
+          'yarn build',
           'cd /drone/src/accounts',
           'yarn install --all',
           'make test-acceptance-webui'
@@ -712,7 +712,7 @@ def dockerRelease(ctx, arch):
       build() + [
       {
         'name': 'dryrun',
-        'image': 'plugins/docker:18.09',
+        'image': 'plugins/docker:latest',
         'pull': 'always',
         'settings': {
           'dry_run': True,
@@ -732,7 +732,7 @@ def dockerRelease(ctx, arch):
       },
       {
         'name': 'docker',
-        'image': 'plugins/docker:18.09',
+        'image': 'plugins/docker:latest',
         'pull': 'always',
         'settings': {
           'username': {
@@ -765,7 +765,7 @@ def dockerRelease(ctx, arch):
         'refs/pull/**',
       ],
     },
-    'volumes': [pipelineVolumeGoWebhippie],
+    'volumes': [pipelineVolumeGo],
   }
 
 def dockerEos(ctx):
@@ -782,7 +782,7 @@ def dockerEos(ctx):
       build() + [
         {
           'name': 'dryrun-eos-ocis',
-          'image': 'plugins/docker:18.09',
+          'image': 'plugins/docker:latest',
           'pull': 'always',
           'settings': {
             'dry_run': True,
@@ -801,7 +801,7 @@ def dockerEos(ctx):
         },
         {
           'name': 'docker-eos-ocis',
-          'image': 'plugins/docker:18.09',
+          'image': 'plugins/docker:latest',
           'pull': 'always',
           'settings': {
             'username': {
@@ -832,7 +832,7 @@ def dockerEos(ctx):
         'refs/pull/**',
       ],
     },
-    'volumes': [pipelineVolumeGoWebhippie],
+    'volumes': [pipelineVolumeGo],
   }
 
 def binaryReleases(ctx):
@@ -880,7 +880,7 @@ def binaryRelease(ctx, name):
       makeGenerate('') + [
       {
         'name': 'build',
-        'image': 'webhippie/golang:1.15',
+        'image': 'owncloudci/golang:1.16',
         'pull': 'always',
         'commands': [
           'make -C ocis release-%s' % (name),
@@ -888,7 +888,7 @@ def binaryRelease(ctx, name):
       },
       {
         'name': 'finish',
-        'image': 'webhippie/golang:1.15',
+        'image': 'owncloudci/golang:1.16',
         'pull': 'always',
         'commands': [
           'make -C ocis release-finish',
@@ -914,10 +914,10 @@ def binaryRelease(ctx, name):
       },
       {
         'name': 'changelog',
-        'image': 'toolhippie/calens:latest',
+        'image': 'owncloudci/golang:1.16',
         'pull': 'always',
         'commands': [
-          'calens --version %s -o ocis/dist/CHANGELOG.md' % ctx.build.ref.replace("refs/tags/v", "").split("-")[0],
+          'make changelog CHANGELOG_VERSION=%s' % ctx.build.ref.replace("refs/tags/v", "").split("-")[0],
         ],
         'when': {
           'ref': [
@@ -956,7 +956,7 @@ def binaryRelease(ctx, name):
         'refs/pull/**',
       ],
     },
-    'volumes': [pipelineVolumeGoWebhippie],
+    'volumes': [pipelineVolumeGo],
   }
 
 def releaseSubmodule(ctx):
@@ -1051,7 +1051,7 @@ def changelog(ctx):
     'steps': [
       {
         'name': 'generate',
-        'image': 'webhippie/golang:1.15',
+        'image': 'owncloudci/golang:1.16',
         'pull': 'always',
         'commands': [
           'make -C ocis changelog',
@@ -1123,19 +1123,18 @@ def releaseDockerReadme(ctx):
     'steps': [
       {
         'name': 'execute',
-        'image': 'sheogorath/readme-to-dockerhub:latest',
+        'image': 'chko/docker-pushrm:1',
         'pull': 'always',
         'environment': {
-          'DOCKERHUB_USERNAME': {
+          'DOCKER_USER': {
             'from_secret': 'docker_username',
           },
-          'DOCKERHUB_PASSWORD': {
+          'DOCKER_PASS': {
             'from_secret': 'docker_password',
           },
-          'DOCKERHUB_REPO_PREFIX': ctx.repo.namespace,
-          'DOCKERHUB_REPO_NAME': ctx.repo.name,
-          'SHORT_DESCRIPTION': 'Docker images for %s' % (ctx.repo.name),
-          'README_PATH': 'README.md',
+          'PUSHRM_TARGET': 'owncloud/${DRONE_REPO_NAME}',
+          'PUSHRM_SHORT': 'Docker images for %s' % (ctx.repo.name),
+          'PUSHRM_FILE': 'README.md',
         },
       },
     ],
@@ -1145,36 +1144,6 @@ def releaseDockerReadme(ctx):
         'refs/tags/v*',
       ],
     },
-  }
-
-def refreshDockerBadges(ctx):
-  return {
-    'kind': 'pipeline',
-    'type': 'docker',
-    'name': 'badges',
-    'platform': {
-      'os': 'linux',
-      'arch': 'amd64',
-    },
-    'steps': [
-      {
-        'name': 'execute',
-        'image': 'plugins/webhook:1',
-        'pull': 'always',
-        'settings': {
-          'urls': {
-            'from_secret': 'microbadger_url',
-          },
-        },
-      },
-    ],
-    'trigger': {
-      'ref': [
-        'refs/heads/master',
-        'refs/tags/v*',
-      ],
-    },
-    'depends_on': getPipelineNames(dockerReleases(ctx)),
   }
 
 def docs(ctx):
@@ -1189,22 +1158,21 @@ def docs(ctx):
     'steps': [
       {
         'name': 'docs-generate',
-        'image': 'webhippie/golang:1.15',
+        'image': 'owncloudci/golang:1.16',
         'commands': ['make -C %s docs-generate' % (module) for module in config['modules']],
       },
       {
         'name': 'prepare',
-        'image': 'owncloudci/alpine:latest',
+        'image': 'owncloudci/golang:1.16',
         'commands': [
           'make -C docs docs-copy'
         ],
       },
       {
         'name': 'test',
-        'image': 'owncloudci/hugo:0.71.0',
+        'image': 'owncloudci/golang:1.16',
         'commands': [
-          'cd docs/hugo',
-          'hugo',
+          'make -C docs test'
         ],
       },
       {
@@ -1233,13 +1201,13 @@ def docs(ctx):
         'name': 'list and remove temporary files',
         'image': 'owncloudci/alpine:latest',
         'commands': [
-          'tree hugo/public',
+          'tree docs/hugo/public',
           'rm -rf docs/hugo',
         ],
       },
       {
         'name': 'downstream',
-        'image': 'plugins/downstream',
+        'image': 'plugins/downstream:latest',
         'settings': {
           'server': 'https://drone.owncloud.com/',
           'token': {
@@ -1274,21 +1242,21 @@ def makeGenerate(module):
   return [
     {
       'name': 'generate nodejs',
-      'image': 'owncloudci/nodejs:12',
+      'image': 'owncloudci/nodejs:14',
       'pull': 'always',
       'commands': [
         '%s ci-node-generate' % (make),
       ],
-      'volumes': [stepVolumeGoWebhippie,],
+      'volumes': [stepVolumeGo,],
     },
     {
       'name': 'generate go',
-      'image': 'webhippie/golang:1.15',
+      'image': 'owncloudci/golang:1.16',
       'pull': 'always',
       'commands': [
         '%s ci-go-generate' % (make),
       ],
-      'volumes': [stepVolumeGoWebhippie,],
+      'volumes': [stepVolumeGo,],
     }
   ]
 
@@ -1348,7 +1316,6 @@ def ocisServer(storage, accounts_hash_difficulty = 4, volumes=[]):
     'PROXY_ENABLE_BASIC_AUTH': True,
     'WEB_UI_CONFIG': '/drone/src/tests/config/drone/ocis-config.json',
     'IDP_IDENTIFIER_REGISTRATION_CONF': '/drone/src/tests/config/drone/identifier-registration.yml',
-    'IDP_TLS': 'true',
     'OCIS_LOG_LEVEL': 'warn',
   }
 
@@ -1428,12 +1395,12 @@ def build():
   return [
     {
       'name': 'build',
-      'image': 'webhippie/golang:1.15',
+      'image': 'owncloudci/golang:1.16',
       'pull': 'always',
       'commands': [
         'make -C ocis build',
       ],
-      'volumes': [stepVolumeGoWebhippie,],
+      'volumes': [stepVolumeGo,],
     },
   ]
 
@@ -1479,7 +1446,7 @@ def deploy(ctx, config, rebuild):
     'steps': [
       {
         'name': 'clone continuous deployment playbook',
-        'image': 'alpine/git',
+        'image': 'alpine/git:latest',
         'commands': [
           'cd deployments/continuous-deployment-config',
           'git clone https://github.com/owncloud-devops/continuous-deployment.git',
@@ -1487,7 +1454,7 @@ def deploy(ctx, config, rebuild):
       },
       {
         'name': 'deploy',
-        'image': 'owncloudci/drone-ansible',
+        'image': 'owncloudci/drone-ansible:latest',
         'failure': 'ignore',
         'environment': {
           'CONTINUOUS_DEPLOY_SERVERS_CONFIG': '../%s' % (config),
@@ -1567,7 +1534,7 @@ def genericCachePurge(ctx, name, cache_key):
     'steps': [
       {
         'name': 'purge-cache',
-        'image': 'minio/mc:RELEASE.2020-12-10T01-26-17Z',
+        'image': 'minio/mc:RELEASE.2021-03-23T05-46-11Z',
         'failure': 'ignore',
         'environment': {
           'MC_HOST_cache': {

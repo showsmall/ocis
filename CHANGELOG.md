@@ -2,19 +2,217 @@
 
 The following sections list the changes for unreleased.
 
-[unreleased]: https://github.com/owncloud/ocis/compare/v1.2.0...master
+[unreleased]: https://github.com/owncloud/ocis/compare/v1.4.0...master
 
 ## Summary
 
+* Bugfix - Fixes "unaligned 64-bit atomic operation" panic on 32-bit ARM: [#1888](https://github.com/owncloud/ocis/pull/1888)
+* Change - Make Protobuf package names unique: [#1875](https://github.com/owncloud/ocis/pull/1875)
+* Enhancement - Change default path for thumbnails: [#1892](https://github.com/owncloud/ocis/pull/1892)
+* Enhancement - Add config for public share SQL driver: [#1916](https://github.com/owncloud/ocis/pull/1916)
+* Enhancement - Add option to reading registry rules from json file: [#1917](https://github.com/owncloud/ocis/pull/1917)
+* Enhancement - Update reva to v1.6.1-0.20210414111318-a4b5148cbfb2: [#1872](https://github.com/owncloud/ocis/pull/1872)
+
+## Details
+
+* Bugfix - Fixes "unaligned 64-bit atomic operation" panic on 32-bit ARM: [#1888](https://github.com/owncloud/ocis/pull/1888)
+
+   Sync/cache had uint64s that were not 64-bit aligned causing panics on 32-bit systems during
+   atomic access
+
+   https://github.com/owncloud/ocis/issues/1887
+   https://github.com/owncloud/ocis/pull/1888
+
+* Change - Make Protobuf package names unique: [#1875](https://github.com/owncloud/ocis/pull/1875)
+
+   Introduce unique `package` and `go_package` names for our Protobuf definitions
+
+   https://github.com/owncloud/ocis/pull/1875
+
+* Enhancement - Change default path for thumbnails: [#1892](https://github.com/owncloud/ocis/pull/1892)
+
+   Changes the default path for thumbnails from `<os tmp dir>/ocis-thumbnails` to
+   `/var/tmp/ocis/thumbnails`
+
+   https://github.com/owncloud/ocis/issues/1891
+   https://github.com/owncloud/ocis/pull/1892
+
+* Enhancement - Add config for public share SQL driver: [#1916](https://github.com/owncloud/ocis/pull/1916)
+
+   https://github.com/owncloud/ocis/pull/1916
+
+* Enhancement - Add option to reading registry rules from json file: [#1917](https://github.com/owncloud/ocis/pull/1917)
+
+   https://github.com/owncloud/ocis/pull/1917
+
+* Enhancement - Update reva to v1.6.1-0.20210414111318-a4b5148cbfb2: [#1872](https://github.com/owncloud/ocis/pull/1872)
+
+  * enforce quota (https://github.com/cs3org/reva/pull/1557)
+  * Make additional info attribute configureable (https://github.com/cs3org/reva/pull/1588)
+  * check ENOTDIR for readlink (https://github.com/cs3org/reva/pull/1597)
+  * Add wrappers for EOS and EOS Home storage drivers (https://github.com/cs3org/reva/pull/1624)
+  * eos: fixes for enabling file sharing (https://github.com/cs3org/reva/pull/1619)
+  * implement checksums in the owncloud storage driver (https://github.com/cs3org/reva/pull/1629)
+
+   https://github.com/owncloud/ocis/pull/1872
+# Changelog for [1.4.0] (2021-03-30)
+
+The following sections list the changes for 1.4.0.
+
+[1.4.0]: https://github.com/owncloud/ocis/compare/v1.3.0...v1.4.0
+
+## Summary
+
+* Bugfix - Fix thumbnail generation for jpegs: [#1785](https://github.com/owncloud/ocis/pull/1785)
+* Change - Update ownCloud Web to v2.1.0: [#1870](https://github.com/owncloud/ocis/pull/1870)
+* Enhancement - Add focus to input elements on login page: [#1792](https://github.com/owncloud/ocis/pull/1792)
+* Enhancement - Improve accessibility to input elements on login page: [#1794](https://github.com/owncloud/ocis/pull/1794)
+* Enhancement - Add new build targets: [#1824](https://github.com/owncloud/ocis/pull/1824)
+* Enhancement - Clarify expected failures: [#1790](https://github.com/owncloud/ocis/pull/1790)
+* Enhancement - Replace special character in login page title with a regular minus: [#1813](https://github.com/owncloud/ocis/pull/1813)
+* Enhancement - File Logging: [#1816](https://github.com/owncloud/ocis/pull/1816)
+* Enhancement - Runtime Hostname and Port are now configurable: [#1822](https://github.com/owncloud/ocis/pull/1822)
+* Enhancement - Generate thumbnails for .gif files: [#1791](https://github.com/owncloud/ocis/pull/1791)
+* Enhancement - Tracing Refactor: [#1819](https://github.com/owncloud/ocis/pull/1819)
+* Enhancement - Update reva to v1.6.1-0.20210326165326-e8a00d9b2368: [#1683](https://github.com/owncloud/ocis/pull/1683)
+
+## Details
+
+* Bugfix - Fix thumbnail generation for jpegs: [#1785](https://github.com/owncloud/ocis/pull/1785)
+
+   Images with the extension `.jpeg` were not properly supported.
+
+   https://github.com/owncloud/ocis/issues/1490
+   https://github.com/owncloud/ocis/pull/1785
+
+* Change - Update ownCloud Web to v2.1.0: [#1870](https://github.com/owncloud/ocis/pull/1870)
+
+   Tags: web
+
+   We updated ownCloud Web to v2.1.0. Please refer to the changelog (linked) for details on the web
+   release.
+
+   https://github.com/owncloud/ocis/pull/1870
+   https://github.com/owncloud/web/releases/tag/v2.1.0
+
+* Enhancement - Add focus to input elements on login page: [#1792](https://github.com/owncloud/ocis/pull/1792)
+
+   https://github.com/owncloud/web/issues/4322
+   https://github.com/owncloud/ocis/pull/1792
+
+* Enhancement - Improve accessibility to input elements on login page: [#1794](https://github.com/owncloud/ocis/pull/1794)
+
+   https://github.com/owncloud/web/issues/4319
+   https://github.com/owncloud/ocis/pull/1794
+   https://github.com/owncloud/ocis/pull/1811
+
+* Enhancement - Add new build targets: [#1824](https://github.com/owncloud/ocis/pull/1824)
+
+   Make build target `build` used to build a binary twice, the second occurrence having symbols
+   for debugging. We split this step in two and added `build-all` and `build-debug` targets.
+
+   - `build-all` now behaves as the previous `build` target, it will generate 2 binaries, one for
+   debug. - `build-debug` will build a single binary for debugging.
+
+   https://github.com/owncloud/ocis/pull/1824
+
+* Enhancement - Clarify expected failures: [#1790](https://github.com/owncloud/ocis/pull/1790)
+
+   Some features, while covered by the ownCloud 10 acceptance tests, will not be implmented for
+   now: - blacklisted / ignored files, because ocis does not need to blacklist `.htaccess` files -
+   `OC-LazyOps` support was [removed from the
+   clients](https://github.com/owncloud/client/pull/8398). We are thinking about [a state
+   machine for uploads to properly solve that scenario and also list the state of files in progress
+   in the web ui](https://github.com/owncloud/ocis/issues/214). The expected failures
+   files now have a dedicated _Won't fix_ section for these items.
+
+   https://github.com/owncloud/ocis/issues/214
+   https://github.com/owncloud/ocis/pull/1790
+   https://github.com/owncloud/client/pull/8398
+
+* Enhancement - Replace special character in login page title with a regular minus: [#1813](https://github.com/owncloud/ocis/pull/1813)
+
+   https://github.com/owncloud/ocis/pull/1813
+
+* Enhancement - File Logging: [#1816](https://github.com/owncloud/ocis/pull/1816)
+
+   When running supervised, support for configuring all logs to a single log file:
+   `OCIS_LOG_FILE=/Users/foo/bar/ocis.log MICRO_REGISTRY=etcd bin/ocis server`
+
+   Supports directing log from single extensions to a log file:
+   `PROXY_LOG_FILE=/Users/foo/bar/proxy.log MICRO_REGISTRY=etcd bin/ocis proxy`
+
+   https://github.com/owncloud/ocis/pull/1816
+
+* Enhancement - Runtime Hostname and Port are now configurable: [#1822](https://github.com/owncloud/ocis/pull/1822)
+
+   Without any configuration the ocis runtime will start on `localhost:9250` unless specified
+   otherwise. Usage:
+
+   - `OCIS_RUNTIME_PORT=6061 bin/ocis server` - overrides the oCIS runtime and starts on port
+   6061 - `OCIS_RUNTIME_PORT=6061 bin/ocis list` - lists running extensions for the runtime on
+   `localhost:6061`
+
+   All subcommands are updated and expected to work with the following environment variables:
+
+   ``` OCIS_RUNTIME_HOST OCIS_RUNTIME_PORT ```
+
+   https://github.com/owncloud/ocis/pull/1822
+
+* Enhancement - Generate thumbnails for .gif files: [#1791](https://github.com/owncloud/ocis/pull/1791)
+
+   Added support for gifs to the thumbnails service.
+
+   https://github.com/owncloud/ocis/pull/1791
+
+* Enhancement - Tracing Refactor: [#1819](https://github.com/owncloud/ocis/pull/1819)
+
+   Centralize tracing handling per extension.
+
+   https://github.com/owncloud/ocis/pull/1819
+
+* Enhancement - Update reva to v1.6.1-0.20210326165326-e8a00d9b2368: [#1683](https://github.com/owncloud/ocis/pull/1683)
+
+  * quota querying and tree accounting [cs3org/reva#1405](https://github.com/cs3org/reva/pull/1405)
+  * Fix webdav file versions endpoint bugs [cs3org/reva#1526](https://github.com/cs3org/reva/pull/1526)
+  * Fix etag changing only once a second [cs3org/reva#1576](https://github.com/cs3org/reva/pull/1576)
+  * Trashbin API parity [cs3org/reva#1552](https://github.com/cs3org/reva/pull/1552)
+  * Signature authentication for public links [cs3org/reva#1590](https://github.com/cs3org/reva/pull/1590)
+
+   https://github.com/owncloud/ocis/pull/1683
+   https://github.com/cs3org/reva/pull/1405
+   https://github.com/owncloud/ocis/pull/1861
+# Changelog for [1.3.0] (2021-03-09)
+
+The following sections list the changes for 1.3.0.
+
+[1.3.0]: https://github.com/owncloud/ocis/compare/v1.2.0...v1.3.0
+
+## Summary
+
+* Bugfix - Purposely delay accounts service startup: [#1734](https://github.com/owncloud/ocis/pull/1734)
 * Bugfix - Add missing gateway config: [#1716](https://github.com/owncloud/ocis/pull/1716)
 * Bugfix - Fix accounts initialization: [#1696](https://github.com/owncloud/ocis/pull/1696)
 * Bugfix - Fix the ttl of the authentication middleware cache: [#1699](https://github.com/owncloud/ocis/pull/1699)
 * Change - Update ownCloud Web to v2.0.1: [#1683](https://github.com/owncloud/ocis/pull/1683)
+* Change - Update ownCloud Web to v2.0.2: [#1776](https://github.com/owncloud/ocis/pull/1776)
+* Enhancement - Remove the JWT from the log: [#1758](https://github.com/owncloud/ocis/pull/1758)
 * Enhancement - Update go-micro to v3.5.1-0.20210217182006-0f0ace1a44a9: [#1670](https://github.com/owncloud/ocis/pull/1670)
 * Enhancement - Update reva to v1.6.1-0.20210223065028-53f39499762e: [#1683](https://github.com/owncloud/ocis/pull/1683)
 * Enhancement - Add initial nats and kubernetes registry support: [#1697](https://github.com/owncloud/ocis/pull/1697)
 
 ## Details
+
+* Bugfix - Purposely delay accounts service startup: [#1734](https://github.com/owncloud/ocis/pull/1734)
+
+   As it turns out the race condition between `accounts <-> storage-metadata` still remains.
+   This PR is a hotfix, and it should be followed up with a proper fix. Either:
+
+   - block the accounts' initialization until the storage metadata is ready (using the registry)
+   or - allow the accounts service to initialize and use a message broker to signal the accounts the
+   metadata storage is ready to receive requests.
+
+   https://github.com/owncloud/ocis/pull/1734
 
 * Bugfix - Add missing gateway config: [#1716](https://github.com/owncloud/ocis/pull/1716)
 
@@ -61,6 +259,22 @@ The following sections list the changes for unreleased.
 
    https://github.com/owncloud/ocis/pull/1683
    https://github.com/owncloud/web/releases/tag/v2.0.1
+
+* Change - Update ownCloud Web to v2.0.2: [#1776](https://github.com/owncloud/ocis/pull/1776)
+
+   Tags: web
+
+   We updated ownCloud Web to v2.0.2. Please refer to the changelog (linked) for details on the web
+   release.
+
+   https://github.com/owncloud/ocis/pull/1776
+   https://github.com/owncloud/web/releases/tag/v2.0.2
+
+* Enhancement - Remove the JWT from the log: [#1758](https://github.com/owncloud/ocis/pull/1758)
+
+   We were logging the JWT in some places. Secrets should not be exposed in logs so it got removed.
+
+   https://github.com/owncloud/ocis/pull/1758
 
 * Enhancement - Update go-micro to v3.5.1-0.20210217182006-0f0ace1a44a9: [#1670](https://github.com/owncloud/ocis/pull/1670)
 
