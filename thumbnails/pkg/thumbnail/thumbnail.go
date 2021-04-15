@@ -6,8 +6,17 @@ import (
 	"github.com/owncloud/ocis/ocis-pkg/log"
 	"github.com/owncloud/ocis/thumbnails/pkg/thumbnail/storage"
 	"image"
+	"strings"
 )
 
+var (
+	SupportedMimeTypes = [...]string{
+		"image/png",
+		"image/jpg",
+		"image/jpeg",
+		"image/gif",
+	}
+)
 // Request bundles information needed to generate a thumbnail for afile
 type Request struct {
 	Resolution image.Rectangle
@@ -76,4 +85,13 @@ func mapToStorageRequest(r Request) storage.Request {
 		Resolution: r.Resolution,
 		Types:      r.Encoder.Types(),
 	}
+}
+
+func IsMimeTypeSupported(m string) bool {
+	for _, mt := range SupportedMimeTypes {
+		if strings.EqualFold(mt, m) {
+			return true
+		}
+	}
+	return false
 }

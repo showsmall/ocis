@@ -1,7 +1,7 @@
 package requests
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -18,16 +18,17 @@ const (
 	DefaultHeight = 32
 )
 
-// Request combines all parameters provided when requesting a thumbnail
+// ThumbnailRequest combines all parameters provided when requesting a thumbnail
 type ThumbnailRequest struct {
 	Filepath        string
+	Filename        string
 	Extension       string
 	Width           int32
 	Height          int32
 	PublicLinkToken string
 }
 
-// NewRequest extracts all required parameters from a http request.
+// ParseThumbnailRequest extracts all required parameters from a http request.
 func ParseThumbnailRequest(r *http.Request) (ThumbnailRequest, error) {
 	fp := extractFilePath(r)
 	q := r.URL.Query()
@@ -39,6 +40,7 @@ func ParseThumbnailRequest(r *http.Request) (ThumbnailRequest, error) {
 
 	tr := ThumbnailRequest{
 		Filepath:        fp,
+		Filename:        filepath.Base(fp),
 		Extension:       filepath.Ext(fp),
 		Width:           int32(width),
 		Height:          int32(height),
@@ -69,28 +71,25 @@ func extractFilePath(r *http.Request) string {
 }
 
 func parseDimensions(q url.Values) (int64, int64, error) {
-	width, err := parseDimension(q.Get("x"), DefaultWidth)
+	width, err := parseDimension(q.Get("x"), "width", DefaultWidth)
 	if err != nil {
 		return 0, 0, err
 	}
-	height, err := parseDimension(q.Get("y"), DefaultHeight)
+	height, err := parseDimension(q.Get("y"), "height", DefaultHeight)
 	if err != nil {
 		return 0, 0, err
 	}
 	return width, height, nil
 }
 
-func parseDimension(d string, defaultValue int64) (int64, error) {
+func parseDimension(d, name string, defaultValue int64) (int64, error) {
 	if d == "" {
 		return defaultValue, nil
 	}
 	result, err := strconv.ParseInt(d, 10, 32)
-	if err != nil {
-		return 0, err
+	if err != nil || result < 1 {
+		// The error message doesn't fit but for OC10 API compatibility reasons we have to set this.
+		return 0, fmt.Errorf("Cannot set %s of 0 or smaller!", name) //nolint:golint
 	}
-	if result < 1 {
-		return 0, errors.New("invalid dimension")
-	}
-
 	return result, nil
 }
